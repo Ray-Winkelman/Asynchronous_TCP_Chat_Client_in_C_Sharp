@@ -31,6 +31,7 @@ namespace Assingment_2
 {
     public partial class ChatForm : Form
     {
+        bool connected;
         Client client;
         Thread receiverthread;
         Log logger = new Log();
@@ -62,13 +63,11 @@ namespace Assingment_2
         // Connects to a server, else displays a message.
         private void connectbutton_Click(object sender, EventArgs e)
         {
-            bool success = false;
-
             try
             {
                 client = new Client("127.0.0.1", 13000);
                 client.connect();
-                success = true;
+                connected = true;
             }
             catch (System.Exception error)
             {
@@ -78,7 +77,7 @@ namespace Assingment_2
             }
             finally
             {
-                if (success)
+                if (connected)
                 {
                     conversationtextbox.Text += NewLine() + "Connection succeeded." + NewLine();
                     logger.LogLine("Connection succeeded.");
@@ -90,14 +89,12 @@ namespace Assingment_2
         // Terminates the current receiver thread and connection, else displays a message.
         private void disconnectbutton_Click(object sender, EventArgs e)
         {
-            bool success = false;
-
             try
             {
                 this.receiverthread.Abort();
                 client.terminate();
                 client = null;
-                success = true;
+                connected = false;
             }
             catch (System.Exception error)
             {
@@ -107,7 +104,7 @@ namespace Assingment_2
             }
             finally
             {
-                if (success)
+                if (!connected)
                 {
                     conversationtextbox.Text += NewLine() + "Connection terminated.";
                     logger.LogLine("Connection terminated.");
@@ -131,7 +128,7 @@ namespace Assingment_2
         {
             string incoming;
 
-            while (true)
+            while (connected)
             {
                 incoming = client.receive();
 
