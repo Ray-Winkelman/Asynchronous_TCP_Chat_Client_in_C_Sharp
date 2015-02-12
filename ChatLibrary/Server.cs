@@ -16,20 +16,20 @@ namespace Chat
         /// </summary>
         /// <param name="server">The server.</param>
         /// <param name="port">The port.</param>
-        public Server(string server, int port)
-        {
-            this.server = new TcpListener(IPAddress.Parse(server), port);
-        }
+        public Server(){}
 
         /// <summary>
         /// Connects this instance.
         /// </summary>
-        override public void connect()
+        override public bool connect(string serverip, int port)
         {
             // Start listening for client requests.
+
+            this.server = new TcpListener(IPAddress.Parse(serverip), port);
             server.Start();
             this.client = this.server.AcceptTcpClient();
             this.stream = client.GetStream();
+            return true;
         }
 
         /// <summary>
