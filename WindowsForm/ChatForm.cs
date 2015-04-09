@@ -1,10 +1,8 @@
 ﻿using System;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using Chat;
 using System.Threading;
-using Logger;
+using Interfaces;
 using Tasks;
 
 /// <summary>
@@ -23,23 +21,34 @@ using Tasks;
 /// Netcat Cheat Sheet
 /// http://www.sans.org/security-resources/sec560/netcat_cheat_sheet_v1.pdf
 /// </summary>
+
 namespace Assingment_2
 {
+    /// <summary>
+    /// 
+    /// </summary>
     public partial class ChatForm : Form
     {
-        private const string IP_ADDRESS = "127.0.0.1";
-        private const int PORT = 13000;
+        private string ipaddress = "127.0.0.1";
+        private int port = 13000;
 
-        Client client = null;
-        Thread receiverthread;
+        private IChatService connectionBase = null;
+        private Thread receiverthread = null;
 
-        public ChatForm()
+        public ChatForm(IChatService connectionBase, string ipaddress, int port)
         {
             InitializeComponent();
             this.AcceptButton = sendbutton;
+            this.connectionBase = connectionBase;
+            this.ipaddress = ipaddress;
+            this.port = port;
         }
 
-        // Displays a welcome message.
+        /// <summary>
+        /// Handles the Load event of the ChatForm control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
         private void ChatForm_Load(object sender, EventArgs e)
         {
             conversationtextbox.Text = "Welcome, to the chat master cheese nugget." +
@@ -48,22 +57,28 @@ namespace Assingment_2
             messagetextbox.Enabled = false;
         }
 
-        // Returns a new line character. The syntax is too long to concatenate. 
+        /// <summary>
+        /// News the line.
+        /// </summary>
+        /// <returns></returns>
         private string NewLine()
         {
             return Environment.NewLine;
         }
 
-        // Connects to a server, else displays a message.
+        /// <summary>
+        /// Handles the Click event of the connectbutton control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
         private void connectbutton_Click(object sender, EventArgs e)
         {
-            if (client == null || !client.Connected)
+            if (connectionBase == null || !connectionBase.isConnected())
             {
                 try
                 {
-                    client = new Client();
-                    client.Connected = client.connect(IP_ADDRESS, PORT);
-                    client.MessagedReceived += new MessagedReceivedHandler(Receive);
+                    connectionBase.setConnected(connectionBase.connect(ipaddress, port));
+                    connectionBase.setMessageReceivedHandler(new MessagedReceivedHandler(Receive));
                 }
                 catch (System.Exception)
                 {
@@ -71,7 +86,7 @@ namespace Assingment_2
                 }
                 finally
                 {
-                    if (client.Connected)
+                    if (connectionBase.isConnected())
                     {
                         AppendToConvoTextBox("Connection succeeded.");
                         StartReceiveThread();
@@ -90,16 +105,20 @@ namespace Assingment_2
             }
         }
 
-        // Terminates the current receiver thread and connection, else displays a message.
+        /// <summary>
+        /// Handles the Click event of the disconnectbutton control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
         private void disconnectbutton_Click(object sender, EventArgs e)
         {
-            if (client.Connected)
+            if (connectionBase.isConnected())
             {
                 try
                 {
-                    client.Connected = false;
-                    client.terminate();
-                    client = null;
+                    connectionBase.setConnected(false);
+                    connectionBase.terminate();
+                    connectionBase = null;
                 }
                 catch (System.Exception)
                 {
@@ -107,7 +126,7 @@ namespace Assingment_2
                 }
                 finally
                 {
-                    if (client == null || !client.Connected)
+                    if (connectionBase == null || !connectionBase.isConnected())
                     {
                         AppendToConvoTextBox("Connection terminated.");
                         sendbutton.Enabled = false;
@@ -121,17 +140,23 @@ namespace Assingment_2
             }
         }
 
-        // Starts the message receiving thread.
+        /// <summary>
+        /// Starts the receive thread.
+        /// </summary>
         private void StartReceiveThread()
         {
             // Create the thread object, passing in the Receive method
             // via a ThreadStart delegate.
-            this.receiverthread = new Thread(new ThreadStart(client.receive));
+            this.receiverthread = new Thread(new ThreadStart(connectionBase.receive));
             //receiverthread.IsBackground
             // Starting the thread
             this.receiverthread.Start();
         }
 
+        /// <summary>
+        /// Receives the specified MSG.
+        /// </summary>
+        /// <param name="msg">The <see cref="Tasks.MessagedReceivedEventArgs"/> instance containing the event data.</param>
         public void Receive(Tasks.MessagedReceivedEventArgs msg)
         {
             if (conversationtextbox.InvokeRequired)
@@ -150,7 +175,10 @@ namespace Assingment_2
             }           
         }
 
-        // Sets the text of a form control. 
+        /// <summary>
+        /// Appends to convo text box.
+        /// </summary>
+        /// <param name="text">The text.</param>
         private void AppendToConvoTextBox(string text)
         {
             this.conversationtextbox.Text += NewLine() + text;
@@ -158,16 +186,20 @@ namespace Assingment_2
             this.conversationtextbox.ScrollToCaret();
         }
 
-        // Sends messagetextbox.Text if Length > 0
+        /// <summary>
+        /// Handles the Click event of the sendbutton control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
         private void sendbutton_Click(object sender, EventArgs e)
         {
-            if (client.Connected && messagetextbox.Text.Length > 0)
+            if (connectionBase.isConnected() && messagetextbox.Text.Length > 0)
             {
                 bool success = false;
 
                 try
                 {
-                    client.send(messagetextbox.Text);
+                    connectionBase.send(messagetextbox.Text);
                     success = true;
                 }
                 catch (System.Exception)
@@ -183,20 +215,23 @@ namespace Assingment_2
                     }
                 }
             }
-            else if (!client.Connected)
+            else if (!connectionBase.isConnected())
             {
                 this.conversationtextbox.Text += NewLine() + "Please connect to a server.";
             }
         }
 
-        // Overriding the form close.
+        /// <summary>
+        /// Raises the <see cref="E:System.Windows.Forms.Form.FormClosing" /> event.
+        /// </summary>
+        /// <param name="e">A <see cref="T:System.Windows.Forms.FormClosingEventArgs" /> that contains the event data.</param>
         protected override void OnFormClosing(FormClosingEventArgs e)
         {        
-            if (client != null)
+            if (connectionBase != null)
             {
-                client.Connected = false;
-                client.terminate();
-                client = null;
+                connectionBase.setConnected(false);
+                connectionBase.terminate();
+                connectionBase = null;
             }
         }
     }

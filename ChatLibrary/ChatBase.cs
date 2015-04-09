@@ -1,6 +1,6 @@
 ﻿using System.Net;
 using System.Net.Sockets;
-using Logger;
+using Interfaces;
 using Tasks;
 
 namespace Chat
@@ -10,13 +10,18 @@ namespace Chat
         protected TcpClient client;
         protected TcpListener server;
         protected NetworkStream stream;
-        protected Log logger = new Log();
+        protected ILoggingService logger;
 
         abstract public bool connect(string serverip, int port);
         abstract public void terminate();
 
         public event MessagedReceivedHandler MessagedReceived;
         private volatile bool connected = false;
+
+        public ChatBase(ILoggingService logger)
+        {
+            this.logger = logger;
+        }
 
         public bool Connected
         {
@@ -36,11 +41,11 @@ namespace Chat
             {
                 // Send the message to the connected TcpServer. 
                 this.stream.Write(data, 0, data.Length);
-                logger.LogLine("Sent: " + message);
+                logger.Log("Sent: " + message);
             }
             catch (System.Exception error)
             {
-                logger.LogLine("Failed to send: " + error.Message);
+                logger.Log("Failed to send: " + error.Message);
             }
         }
 
@@ -68,14 +73,14 @@ namespace Chat
                     if (responseData.Length > 0)
                     {
                         MessagedReceived(new MessagedReceivedEventArgs("Server:   " + responseData));
-                        logger.LogLine("Received: " + responseData);
+                        logger.Log("Received: " + responseData);
                         responseData = "";
                     }
                 }
             }
             catch (System.Exception error)
             {
-                logger.LogLine("Failed to receive: " + error.Message);
+                logger.Log("Failed to receive: " + error.Message);
             }
         }
     }

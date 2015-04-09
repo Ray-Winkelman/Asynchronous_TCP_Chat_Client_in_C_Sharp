@@ -1,4 +1,4 @@
-﻿
+﻿using Interfaces;
 using System.Net;
 using System.Net.Sockets;
 
@@ -16,7 +16,8 @@ namespace Chat
         /// </summary>
         /// <param name="server">The server.</param>
         /// <param name="port">The port.</param>
-        public Server(){}
+        public Server(ILoggingService logger)
+            : base(logger) { }
 
         /// <summary>
         /// Connects this instance.
