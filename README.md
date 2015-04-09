@@ -1,4 +1,4 @@
-# Asynchronous TCP Chat Client/Server in C#
+# Asynchronous TCP Chat Client/Server
 
 This application is currently capable of being a server and client chat interface. To switch back and forth, simply comment the line in the Unity or Ninject preparation code blocks in Program.cs. 
 ```cs
