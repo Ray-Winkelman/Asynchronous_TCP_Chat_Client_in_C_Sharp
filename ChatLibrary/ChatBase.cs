@@ -1,5 +1,4 @@
-﻿using System.Net;
-using System.Net.Sockets;
+﻿using System.Net.Sockets;
 using Interfaces;
 using Tasks;
 
@@ -10,23 +9,33 @@ namespace Chat
         protected TcpClient client;
         protected TcpListener server;
         protected NetworkStream stream;
-        protected ILoggingService logger;
+        protected readonly ILoggingService logger;
 
         abstract public bool connect(string serverip, int port);
         abstract public void terminate();
 
-        public event MessagedReceivedHandler MessagedReceived;
+        private event MessagedReceivedHandler MessagedReceived;
         private volatile bool connected = false;
 
-        public ChatBase(ILoggingService logger)
+        protected ChatBase(ILoggingService logger)
         {
             this.logger = logger;
+            logger.Log("Chat Base Class Constructor Called.");
         }
 
-        public bool Connected
+        public void setMessageReceivedHandler(dynamic handler)
         {
-            get { return connected; }
-            set { connected = value; }
+            MessagedReceived += handler;
+        }
+
+        public bool isConnected()
+        {
+            return connected;
+        }
+
+        public void setConnected(bool isConnected)
+        {
+            this.connected = isConnected;
         }
 
         /// <summary>
@@ -55,7 +64,7 @@ namespace Chat
         /// <returns></returns>
         public void receive()
         {
-            string responseData = string.Empty;
+            var responseData = string.Empty;
             try
             {
                 while (connected)

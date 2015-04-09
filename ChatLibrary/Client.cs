@@ -7,7 +7,7 @@ namespace Chat
     /// <summary>
     /// A client object for transmitting TCP chat messages.
     /// </summary>
-    public class Client : ChatBase
+    public class Client : ChatBase, IChatService
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="Client"/> class.

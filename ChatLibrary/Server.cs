@@ -2,15 +2,13 @@
 using System.Net;
 using System.Net.Sockets;
 
-
 namespace Chat
 {
     /// <summary>
     /// A server object for receiving TCP chat messages.
     /// </summary>
-    public class Server : ChatBase
+    public class Server : ChatBase, IChatService
     {
-
         /// <summary>
         /// Initializes a new instance of the <see cref="Server"/> class.
         /// </summary>
