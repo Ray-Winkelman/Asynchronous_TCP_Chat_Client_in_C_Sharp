@@ -1,21 +1,19 @@
 ﻿using System.Net;
 using System.Net.Sockets;
-using Interfaces;
 
 namespace Chat
 {
     /// <summary>
     /// A client object for transmitting TCP chat messages.
     /// </summary>
-    public class Client : ChatBase, IChatService
+    public class Client : ChatBase
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="Client"/> class.
         /// </summary>
         /// <param name="server">The server.</param>
         /// <param name="port">The port.</param>
-        public Client(ILoggingService logger)
-            : base(logger){ }
+        public Client() { }
 
         /// <summary>
         /// Connects this instance.
@@ -26,11 +24,11 @@ namespace Chat
             {
                 this.client = new TcpClient(serverip, port);
                 this.stream = client.GetStream();
-                logger.Log("Connected.");
+                logger.LogLine("Connected.");
             }
             catch (System.Exception error)
             {
-                logger.Log("Failed to connect: " + error.Message);
+                logger.LogLine("Failed to connect: " + error.Message);
                 return false;
             }
             return true;
@@ -46,11 +44,11 @@ namespace Chat
             {
                 stream.Close();
                 client.Close();
-                logger.Log("Connection terminated.");
+                logger.LogLine("Connection terminated.");
             }
             catch (System.Exception error)
             {
-                logger.Log("False connection on exit: " + error.Message);
+                logger.LogLine("False connection on exit: " + error.Message);
             }
         }
     }

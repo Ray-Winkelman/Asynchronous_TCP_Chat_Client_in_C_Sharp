@@ -1,21 +1,22 @@
-﻿using Interfaces;
+﻿
 using System.Net;
 using System.Net.Sockets;
+
 
 namespace Chat
 {
     /// <summary>
     /// A server object for receiving TCP chat messages.
     /// </summary>
-    public class Server : ChatBase, IChatService
+    public class Server : ChatBase
     {
+
         /// <summary>
         /// Initializes a new instance of the <see cref="Server"/> class.
         /// </summary>
         /// <param name="server">The server.</param>
         /// <param name="port">The port.</param>
-        public Server(ILoggingService logger)
-            : base(logger) { }
+        public Server(){}
 
         /// <summary>
         /// Connects this instance.

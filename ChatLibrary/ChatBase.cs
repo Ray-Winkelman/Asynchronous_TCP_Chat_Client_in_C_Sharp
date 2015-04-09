@@ -1,5 +1,6 @@
-﻿using System.Net.Sockets;
-using Interfaces;
+﻿using System.Net;
+using System.Net.Sockets;
+using Logger;
 using Tasks;
 
 namespace Chat
@@ -9,33 +10,18 @@ namespace Chat
         protected TcpClient client;
         protected TcpListener server;
         protected NetworkStream stream;
-        protected readonly ILoggingService logger;
+        protected Log logger = new Log();
 
         abstract public bool connect(string serverip, int port);
         abstract public void terminate();
 
-        private event MessagedReceivedHandler MessagedReceived;
+        public event MessagedReceivedHandler MessagedReceived;
         private volatile bool connected = false;
 
-        protected ChatBase(ILoggingService logger)
+        public bool Connected
         {
-            this.logger = logger;
-            logger.Log("Chat Base Class Constructor Called.");
-        }
-
-        public void setMessageReceivedHandler(dynamic handler)
-        {
-            MessagedReceived += handler;
-        }
-
-        public bool isConnected()
-        {
-            return connected;
-        }
-
-        public void setConnected(bool isConnected)
-        {
-            this.connected = isConnected;
+            get { return connected; }
+            set { connected = value; }
         }
 
         /// <summary>
@@ -50,11 +36,11 @@ namespace Chat
             {
                 // Send the message to the connected TcpServer. 
                 this.stream.Write(data, 0, data.Length);
-                logger.Log("Sent: " + message);
+                logger.LogLine("Sent: " + message);
             }
             catch (System.Exception error)
             {
-                logger.Log("Failed to send: " + error.Message);
+                logger.LogLine("Failed to send: " + error.Message);
             }
         }
 
@@ -64,7 +50,7 @@ namespace Chat
         /// <returns></returns>
         public void receive()
         {
-            var responseData = string.Empty;
+            string responseData = string.Empty;
             try
             {
                 while (connected)
@@ -82,14 +68,14 @@ namespace Chat
                     if (responseData.Length > 0)
                     {
                         MessagedReceived(new MessagedReceivedEventArgs("Server:   " + responseData));
-                        logger.Log("Received: " + responseData);
+                        logger.LogLine("Received: " + responseData);
                         responseData = "";
                     }
                 }
             }
             catch (System.Exception error)
             {
-                logger.Log("Failed to receive: " + error.Message);
+                logger.LogLine("Failed to receive: " + error.Message);
             }
         }
     }
